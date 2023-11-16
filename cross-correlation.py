@@ -11,13 +11,13 @@ import math
 
 import sys
 
-def find_max(trace_array_input):
-    max_val = trace_array_input[0]
+def find_max(correlation):
+    max_val = correlation[0]
     max_index = 0
 
-    for i in range(len(trace_array_input)):
-        if trace_array_input[i] > max_val:
-            max_val = trace_array_input[i]
+    for i in range(len(correlation)):
+        if correlation[i] > max_val:
+            max_val = correlation[i]
             max_index = i
     return max_index
 
@@ -25,9 +25,9 @@ def find_max(trace_array_input):
 def calculate_shift(trace1, trace2):
     correlation = np.correlate(np.array(trace1), np.array(trace2), mode='full')
     
-    max_index = find_max(correlation)
-    
-    result = max_index + 1 - trace2.size
+    # max_index = find_max(correlation)
+    # print(max_index)   
+    result = np.argmax(correlation) - (trace1.size - 1)
     
     return result
 
@@ -76,21 +76,21 @@ with trsfile.open(sys.argv[1], 'r') as traces:
                                          #   N        : TRS file is updated after N traces
 
     ) as wrtraces:
-
+        master_trace = traces[0].samples[zoomS:zoomE]
         for i in range(number):
             print(f"Calculating trace {i}")
             trace = traces[i]
-            #print(trace)
-            trace_array = trace.samples[zoomS:zoomE]
             data = trace.parameters['LEGACY_DATA'].value
             
+            trace_array = trace.samples[zoomS:zoomE]
+            rand_trace_array = np.zeros(trace_array.size, dtype=np.int8)
+            
             if i == 0:
-                rand_trace_array = np.zeros(trace_array.size, dtype=np.int8)
                 for i in range(trace_array.size):
                     rand_trace_array[i] = trace_array[i]
             else:
-                shift = calculate_shift(traces[0], trace)
-                rand_trace_array = np.zeros(trace_array.size, dtype=np.int8)
+                shift = calculate_shift(master_trace, trace_array)
+                print(shift)
 
                 if shift > 0:
                     for i in range(trace_array.size-shift):
