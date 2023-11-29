@@ -51,14 +51,13 @@ with trsfile.open(sys.argv[1], 'r') as traces:
     # Show all headers
     for header, value in traces.get_headers().items():
         print(header, '=', value)
+    
     scale_X = traces.get_headers().get(trsfile.Header.SCALE_X)
     scale_Y = traces.get_headers().get(trsfile.Header.SCALE_Y)
     lengthData = traces.get_headers().get(trsfile.Header.LENGTH_DATA)
     coding = traces.get_headers().get(trsfile.Header.SAMPLE_CODING)
-
-    # header = traces.get_headers()
-    # header[trsfile.Header.NUMBER_SAMPLES] = 1
     nameTrace = sys.argv[1][0:-4]+'+SAVE('+str(start)+','+str(number)+').trs'
+    
     with trsfile.trs_open(
         nameTrace,                 # File name of the trace set
         'w',                             # Mode: r, w, x, a (default to x)
@@ -70,10 +69,6 @@ with trsfile.open(sys.argv[1], 'r') as traces:
             trsfile.Header.SCALE_X: scale_X,
             trsfile.Header.SCALE_Y: scale_Y,
             trsfile.Header.DESCRIPTION: 'Copied',
-            # Header.TITLE_SPACE = 255
-            # Header.LENGTH_DATA = 63
-            # trsfile.Header.TRACE_PARAMETER_DEFINITIONS: TraceParameterDefinitionMap(
-            #    {'LEGACY_DATA': TraceParameterDefinition(ParameterType.BYTE, 16, 0)})
         },
         # Optional: padding mode (defaults to TracePadding.AUTO)
         padding_mode=trsfile.TracePadding.AUTO,
@@ -85,6 +80,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
 
     ) as wrtraces:
         master_trace = traces[0].samples[zoomS:zoomE]
+        
         for i in range(number):
             print(f"Calculating trace {i}")
             trace = traces[i]
@@ -98,6 +94,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
                     rand_trace_array[i] = trace_array[i]
             else:
                 shift = calculate_shift(master_trace, trace_array)
+
                 print(shift)
 
                 if shift > 0:
