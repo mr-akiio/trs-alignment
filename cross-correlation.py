@@ -25,13 +25,20 @@ def find_max(correlation):
 
 def calculate_shift(trace1, trace2):
     # take just some part of master trace
+    
     correlation = np.correlate(np.array(trace1), np.array(trace2), mode='full')
+    # len(correlation) = trace1 + trace2 - 1
+
     # take like 2nd and 3rd quarter from correlation array
     # start of master, length of master and misalign
 
     # max_index = find_max(correlation)
-    # print(max_index)
-    result = np.argmax(correlation) - trace1.size - 1
+    b = correlation[1990:2010]
+    a = np.argmax(b)
+    print(b)
+    # print(correlation[1999])
+    # print(correlation[np.argmax(correlation)])
+    result = trace1.size - (np.argmax(correlation) + 1)
 
     return result
 
@@ -41,6 +48,8 @@ print(parameters)
 
 zoomS = 0
 zoomE = 22000
+corrS = 15000
+corrE = 17000
 
 start = 0
 number = 20
@@ -56,7 +65,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
     scale_Y = traces.get_headers().get(trsfile.Header.SCALE_Y)
     lengthData = traces.get_headers().get(trsfile.Header.LENGTH_DATA)
     coding = traces.get_headers().get(trsfile.Header.SAMPLE_CODING)
-    nameTrace = sys.argv[1][0:-4]+'+SAVE('+str(start)+','+str(number)+').trs'
+    nameTrace = sys.argv[1][0:-4]+'+CORR('+str(start)+','+str(number)+').trs'
     
     with trsfile.trs_open(
         nameTrace,                 # File name of the trace set
@@ -79,7 +88,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
         #   N        : TRS file is updated after N traces
 
     ) as wrtraces:
-        master_trace = traces[0].samples[zoomS:zoomE]
+        master_trace = traces[0].samples[corrS:corrE]
         
         for i in range(number):
             print(f"Calculating trace {i}")
@@ -93,8 +102,8 @@ with trsfile.open(sys.argv[1], 'r') as traces:
                 for i in range(trace_array.size):
                     rand_trace_array[i] = trace_array[i]
             else:
-                shift = calculate_shift(master_trace, trace_array)
-
+                # shift = calculate_shift(master_trace, trace_array[corrS:corrE])
+                shift = calculate_shift(master_trace, master_trace)
                 print(shift)
 
                 if shift > 0:
