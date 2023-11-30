@@ -2,7 +2,7 @@
 
 This project is trying to align traces by using peak-based alignment and correlation-based alignment.
 
-To run this project you need to install trsfile, matplotlib and numpy. Use `pip` to download it using python.
+To run this project you need to install trsfile, matplotlib and numpy. You can use `pip` to download it.
 
 Each python file will create new file with changed traces, with appropiate naming (usualy as +file_name). On the beggining of each python file, there are some global variables you can change. To see the traces use `visualize.py`.
 
