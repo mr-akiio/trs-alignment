@@ -33,7 +33,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
 
     # header = traces.get_headers()
     # header[trsfile.Header.NUMBER_SAMPLES] = 1
-    nameTrace = sys.argv[1][0:-4] + '+SAVE(' + str(start) + ',' + str(number) + ').trs'
+    nameTrace = sys.argv[1][0:-4] + '+SAVE(' + str(start) + ',' + str(number) + '_).trs'
     with trsfile.trs_open(
             nameTrace,  # File name of the trace set
             'w',  # Mode: r, w, x, a (default to x)
@@ -56,24 +56,39 @@ with trsfile.open(sys.argv[1], 'r') as traces:
             #   N        : TRS file is updated after N traces
 
     ) as wrtraces:
-        master_trace = traces[0]
-        for i in range(1, number + 1):
+        master_trace_array = traces[0].samples[zoomS:zoomE]
+        master_trace = np.zeros(master_trace_array.size, dtype=np.int8)
+        for i in range(master_trace.size):
+            master_trace[i] = master_trace_array[i]
+
+        print("Calculating master trace and optimizing extremes length")
+        utils.extremes_len_optimize(master_trace, 100, 200)
+        master_extremes = utils.find_lokal_extemes_indexes(master_trace)
+        print(f"master trace extremes length: {len(master_extremes)}\n")
+        print(f"master extremes: {master_extremes}")
+        for i in range(number):
             print(f"Calculating trace {i}")
-            trace = traces[i]
-            data = trace.parameters['LEGACY_DATA'].value
+            data = traces[i].parameters['LEGACY_DATA'].value
 
-            rand_trace_array = np.zeros(trace.size, dtype=np.int8)
+            trace_array = traces[i].samples[zoomS:zoomE]
+            trace = np.zeros(trace_array.size, dtype=np.int8)
+            for j in range(trace.size):
+                trace[j] = trace_array[j]
+            print(f"second extremes: {utils.find_lokal_extemes_indexes(trace)}")
+            rand_trace_array = np.zeros(trace_array.size, dtype=np.int8)
 
-
-            shift = utils.extremes_calculate_shift(master_trace, trace)
-            print(shift)
+            if i != 0:
+                shift = utils.extremes_calculate_shift(master_trace, trace, master_extremes)
+                print(shift)
+            else:
+                shift = 0
 
             if shift > 0:
-                for i in range(trace.size - shift):
-                    rand_trace_array[i + shift] = trace[i]
+                for j in range(trace.size - shift):
+                    rand_trace_array[j + shift] = trace[j]
             else:
-                for i in range(trace.size + shift):
-                    rand_trace_array[i] = trace[i - shift]
+                for j in range(trace.size + shift):
+                    rand_trace_array[j] = trace[j - shift]
 
             # Adding one Trace
             wrtraces.append(

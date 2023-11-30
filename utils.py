@@ -1,10 +1,10 @@
 import numpy as np
 
-LOC_EXT_CONF_INT = 20
+LOC_EXT_CONF_INT = 40
 
-SIMILARITY_SEQUENCE_LEN = 5
+SIMILARITY_SEQUENCE_LEN = 100
 VALUE_RANGE = 256
-EXTREMES_MAX_JUMP = 5
+EXTREMES_MAX_JUMP = 50
 VALUE_EQ_THRESHOLD = 0.1
 DIST_EQ_THRESHOLD = 0.1
 
@@ -35,6 +35,8 @@ def find_lokal_extemes_indexes(trace):
 """
 def extremes_evaluation(trace1, trace2, extremes1, extremes2):
     result = []
+    trace1 = trace1.astype(np.int16)
+    trace2 = trace2.astype(np.int16)
     for offset1 in range(len(extremes1) - SIMILARITY_SEQUENCE_LEN):
         for offset2 in range(len(extremes2) - SIMILARITY_SEQUENCE_LEN):
             sum_similarity = 0
@@ -58,14 +60,29 @@ def extremes_evaluation(trace1, trace2, extremes1, extremes2):
 
             if count_similarity == 0:
                 result.append((0, extremes1[offset1], extremes2[offset2]))
+            elif sum_similarity == count_similarity:
+                # early stop
+                return result
             else:
                 result.append((sum_similarity / count_similarity, extremes1[offset1], extremes2[offset2]))
     return result
 
 
-def extremes_calculate_shift(trace1, trace2):
-    extremes1 = find_lokal_extemes_indexes(trace1)
+def extremes_len_optimize(trace, lower_bound, upper_bound):
+    global LOC_EXT_CONF_INT
+    extremes = find_lokal_extemes_indexes(trace)
+    while len(extremes) > upper_bound or len(extremes) < lower_bound:
+        if len(extremes) > upper_bound:
+            LOC_EXT_CONF_INT = LOC_EXT_CONF_INT * 2
+        if len(extremes) < lower_bound:
+            LOC_EXT_CONF_INT = LOC_EXT_CONF_INT * 0.75
+        extremes = find_lokal_extemes_indexes(trace)
+
+
+def extremes_calculate_shift(trace1, trace2, extremes1):
     extremes2 = find_lokal_extemes_indexes(trace2)
+    print("extremes1 len: " + str(len(extremes1)))
+    print("extremes2 len: " + str(len(extremes2)))
     evaluation = extremes_evaluation(trace1, trace2, extremes1, extremes2)
     evaluation.sort()
     if len(evaluation) == 0:
@@ -73,7 +90,7 @@ def extremes_calculate_shift(trace1, trace2):
         return 0
     _, index1, index2 = evaluation[0]
 
-    return trace1[index1] - trace2[index2]
+    return index1 - index2
 
 
 def test():
@@ -97,5 +114,7 @@ def test():
     print([trace2[i] for i in find_lokal_extemes_indexes(trace2)])
     print(extremes_evaluation(trace, trace2, find_lokal_extemes_indexes(trace), find_lokal_extemes_indexes(trace2)))
 
+
 if __name__ == "__main__":
-    test()
+    print()
+    #test()
