@@ -27,20 +27,16 @@ def calculate_shift(trace1, trace2):
     # take just some part of master trace
     
     correlation = np.correlate(np.array(trace1), np.array(trace2), mode='full')
-    # len(correlation) = trace1 + trace2 - 1
+    # len(correlation) = trace1.size() + trace2.size() - 1
 
-    # take like 2nd and 3rd quarter from correlation array
-    # start of master, length of master and misalign
-
-    # max_index = find_max(correlation)
-    b = correlation[1990:2010]
-    a = np.argmax(b)
-    print(b)
-    # print(correlation[1999])
+    # b = correlation[1990:2010]
+    # a = np.argmax(b)
+    # print(b)
+    print(correlation[1999])
     # print(correlation[np.argmax(correlation)])
-    result = trace1.size - (np.argmax(correlation) + 1)
+    # result = trace1.size - (np.argmax(correlation) + 1)
 
-    return result
+    return 0
 
 
 parameters = TraceSetParameterMap()
