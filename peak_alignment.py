@@ -10,15 +10,15 @@ import numpy as np
 by_group = 5
 
 
-def find_min(trace_array_input):
-    min_val = trace_array_input[0]
-    min_index = 0
+def find_max(trace_array_input):
+    max_val = trace_array_input[0]
+    max_index = 0
 
     for i in range(by_group // 2, trace_array_input.size // 2, by_group):
-        if trace_array_input[i] < min_val:
-            min_val = trace_array_input[i]
-            min_index = i
-    return min_index
+        if trace_array_input[i] > max_val:
+            max_val = trace_array_input[i]
+            max_index = i
+    return max_index
 
 parameters = TraceSetParameterMap()
 print(parameters)
@@ -43,7 +43,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
     coding = traces.get_headers().get(trsfile.Header.SAMPLE_CODING)
 
     nameTrace = sys.argv[1][0:-4] + \
-        '+SAVE('+str(start)+','+str(number)+')+repaired.trs'
+        '+peak_repaired.trs'
     with trsfile.trs_open(
         nameTrace,                 # File name of the trace set
         'w',                             # Mode: r, w, x, a (default to x)
