@@ -1,13 +1,8 @@
 import trsfile
 from trsfile.parametermap import TraceSetParameterMap
-import trsfile.traceparameter as tp
-from trsfile.parametermap import TraceParameterMap, TraceParameterDefinitionMap
-from trsfile.traceparameter import StringParameter, ByteArrayParameter, ParameterType, TraceParameterDefinition
-import matplotlib.pyplot as plt
-import sys
+from trsfile.parametermap import TraceParameterMap
+from trsfile.traceparameter import ByteArrayParameter
 import numpy as np
-# import random, os
-import math
 import utils
 import sys
 
@@ -19,6 +14,9 @@ alignZoomE = 22000
 
 outputZoomS = 0
 outputZoomE = 220000
+
+EXTREMES_L_BOUND = 30
+EXTREMES_UP_BOUND = 70
 
 start = 0
 number = 5
@@ -68,7 +66,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
         master_trace = utils.moving_average(master_trace, n=AVG_BY)
 
         print("Calculating master trace and optimizing extremes length")
-        utils.extremes_len_optimize(master_trace, 50, 100)
+        utils.extremes_len_optimize(master_trace, EXTREMES_L_BOUND, EXTREMES_UP_BOUND)
         master_extremes = utils.find_lokal_extemes_indexes(master_trace)
         print(f"master trace extremes length: {len(master_extremes)}\n")
         print(f"master extremes: {master_extremes}")

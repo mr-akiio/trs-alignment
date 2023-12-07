@@ -9,7 +9,7 @@ Each python file will create new file with changed traces, with appropiate namin
 Run in terminal as:
 > **python file.py traces.trs**
 
-You can find here already two files with misalign traces. One contains 5 traces and other 10. You can run them trough `peak_alignment.py` or `cross-correlation.py` to see the results.
+You can find here already two files with misalign traces. One contains 5 traces and other 10. You can run them trough `peak_alignment.py`, `cross-correlation.py` or `extremes_alignment.py` to see the results. In case of using `extremes_alignment.py` be aware of that it uses `utils.py` where are another constants to play with.
 
 There is one more file with 10 traces. These are not misalign and you can do with them what you want.
 You can use two more python files to work with traces.
