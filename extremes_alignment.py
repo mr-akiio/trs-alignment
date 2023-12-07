@@ -14,12 +14,16 @@ import sys
 parameters = TraceSetParameterMap()
 print(parameters)
 
-zoomS = 0
-zoomE = 220000
+alignZoomS = 0
+alignZoomE = 22000
+
+outputZoomS = 0
+outputZoomE = 220000
 
 start = 0
-number = 20
+number = 5
 displayLabels = 1
+AVG_BY = 1000
 
 with trsfile.open(sys.argv[1], 'r') as traces:
     print(traces.get_headers())
@@ -33,7 +37,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
 
     # header = traces.get_headers()
     # header[trsfile.Header.NUMBER_SAMPLES] = 1
-    nameTrace = sys.argv[1][0:-4] + '+SAVE(' + str(start) + ',' + str(number) + '_).trs'
+    nameTrace = sys.argv[1][0:-4] + 'EXTREMES(' + str(start) + ',' + str(number) + ').trs'
     with trsfile.trs_open(
             nameTrace,  # File name of the trace set
             'w',  # Mode: r, w, x, a (default to x)
@@ -56,39 +60,40 @@ with trsfile.open(sys.argv[1], 'r') as traces:
             #   N        : TRS file is updated after N traces
 
     ) as wrtraces:
-        master_trace_array = traces[0].samples[zoomS:zoomE]
+        master_trace_array = traces[0].samples[alignZoomS:alignZoomE]
         master_trace = np.zeros(master_trace_array.size, dtype=np.int8)
         for i in range(master_trace.size):
             master_trace[i] = master_trace_array[i]
 
+        master_trace = utils.moving_average(master_trace, n=AVG_BY)
+
         print("Calculating master trace and optimizing extremes length")
-        utils.extremes_len_optimize(master_trace, 100, 200)
+        utils.extremes_len_optimize(master_trace, 50, 100)
         master_extremes = utils.find_lokal_extemes_indexes(master_trace)
         print(f"master trace extremes length: {len(master_extremes)}\n")
         print(f"master extremes: {master_extremes}")
         for i in range(number):
-            print(f"Calculating trace {i}")
+            print(f"\nCalculating trace {i}")
             data = traces[i].parameters['LEGACY_DATA'].value
 
-            trace_array = traces[i].samples[zoomS:zoomE]
+            trace_array = traces[i].samples[alignZoomS:alignZoomE]
             trace = np.zeros(trace_array.size, dtype=np.int8)
             for j in range(trace.size):
                 trace[j] = trace_array[j]
-            print(f"second extremes: {utils.find_lokal_extemes_indexes(trace)}")
-            rand_trace_array = np.zeros(trace_array.size, dtype=np.int8)
+            rand_trace_array = np.zeros(outputZoomE - outputZoomS, dtype=np.int8)
 
             if i != 0:
-                shift = utils.extremes_calculate_shift(master_trace, trace, master_extremes)
-                print(shift)
+                shift = utils.extremes_calculate_shift(master_trace, utils.moving_average(trace, n=AVG_BY), master_extremes)
+                print(f"shift: {shift}")
             else:
                 shift = 0
 
             if shift > 0:
-                for j in range(trace.size - shift):
-                    rand_trace_array[j + shift] = trace[j]
+                for j in range(outputZoomE - outputZoomS - shift):
+                    rand_trace_array[j + shift] = traces[i][j + outputZoomS]
             else:
-                for j in range(trace.size + shift):
-                    rand_trace_array[j] = trace[j - shift]
+                for j in range(outputZoomE - outputZoomS + shift):
+                    rand_trace_array[j] = traces[i][j - shift + outputZoomS]
 
             # Adding one Trace
             wrtraces.append(

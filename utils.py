@@ -1,10 +1,11 @@
 import numpy as np
+import math
 
 LOC_EXT_CONF_INT = 40
 
-SIMILARITY_SEQUENCE_LEN = 100
+SIMILARITY_SEQUENCE_LEN = 10
 VALUE_RANGE = 256
-EXTREMES_MAX_JUMP = 50
+EXTREMES_MAX_JUMP = 2
 VALUE_EQ_THRESHOLD = 0.1
 DIST_EQ_THRESHOLD = 0.1
 
@@ -27,6 +28,10 @@ def find_lokal_extemes_indexes(trace):
     return result
 
 
+def norm_euk_dist(x1, x2, y1, y2, x_transformation):
+    return math.sqrt(math.pow(y1 - y2, 2) + math.pow((x1 - x2) * x_transformation, 2))
+
+
 """"
  start and end of computing with extremes1 of length 16 and extremes2 of length 9 with SIMILIARITY_SEQUENCE_LEN = 5
         [][][][][][][][][][][][][][][][]   --\   [][][][][][][][][][][][][][][][] (16)
@@ -42,29 +47,97 @@ def extremes_evaluation(trace1, trace2, extremes1, extremes2):
             sum_similarity = 0
             count_similarity = 0
             jump = 0
+            jump1 = 0
+            jump2 = 0
+
             if (abs(trace1[extremes1[offset1]] - trace2[extremes2[offset2]])) / VALUE_RANGE < VALUE_EQ_THRESHOLD:
-                for i in range(SIMILARITY_SEQUENCE_LEN - 1):
-                    if offset2 + i + jump > len(extremes2) - 2:
-                        return result
-                    ext_index1 = extremes1[offset1 + i]
-                    ext_index2 = extremes2[offset2 + i + jump]
+                # candidate_shift = extremes1[offset1] - extremes2[offset2]
+                ext_array1 = extremes1[offset1:offset1+SIMILARITY_SEQUENCE_LEN]
+                ext_x_array1 = [i - ext_array1[0] for i in ext_array1]
+                ext_y_array1 = [trace1[i] for i in ext_array1]
+                ext_array2 = extremes2[offset2:offset2 + SIMILARITY_SEQUENCE_LEN]
+                ext_x_array2 = [i - ext_array2[0] for i in ext_array2]
+                ext_y_array2 = [trace2[i] for i in ext_array2]
+                sum_distances = 0
+                list_distances = []
+                # attempt to normalize x magnitude of euklidian distance, so both x and y
+                # have similar weights in euklidian distance
+                x_transformation = VALUE_RANGE / (ext_x_array1[-1] / SIMILARITY_SEQUENCE_LEN)
+                for i in range(SIMILARITY_SEQUENCE_LEN):
+                    dist1 = norm_euk_dist(ext_x_array1[i], ext_x_array2[i], ext_y_array1[i],
+                                        ext_y_array2[i], x_transformation)
+                    dist2 = dist1
+                    j = 1
+                    # searching for closest points
 
-                    distance = extremes1[offset1 + i + 1] - extremes1[offset1 + i]
-                    lookup = extremes2[offset2+i+jump:min([offset2+i+jump+EXTREMES_MAX_JUMP, len(extremes2)])]
-                    jump += [abs(j - ext_index2) for j in lookup].index(min([abs(j - ext_index2) for j in lookup]))
-                    fe_dist_diff = abs(distance + ext_index2 - extremes2[offset2 + i + jump + 1])
-                    fe_value1 = trace1[extremes1[offset1 + i + 1]]
-                    fe_value2 = trace2[extremes2[offset2 + i + jump + 1]]
-                    sum_similarity += (1 - abs(fe_dist_diff/distance)) * (1 - abs((fe_value1 - fe_value2) / VALUE_RANGE))
-                    count_similarity += 1
+                    # search min distance for point extremes2[i]
+                    # search left in extremes2
+                    while i - j > 0 and norm_euk_dist(ext_x_array1[i], ext_x_array2[i-j],
+                                                    ext_y_array1[i], ext_y_array2[i-j], x_transformation) < dist1:
+                        dist1 = norm_euk_dist(ext_x_array1[i], ext_x_array2[i-j],
+                                            ext_y_array1[i], ext_y_array2[i-j], x_transformation)
+                        j += 1
 
-            if count_similarity == 0:
-                result.append((0, extremes1[offset1], extremes2[offset2]))
-            elif sum_similarity == count_similarity:
-                # early stop
-                return result
-            else:
-                result.append((sum_similarity / count_similarity, extremes1[offset1], extremes2[offset2]))
+                    # search right in extremes2
+                    j = 1
+                    while i + j < SIMILARITY_SEQUENCE_LEN and norm_euk_dist(ext_x_array1[i], ext_x_array2[i+j],
+                                                                          ext_y_array1[i], ext_y_array2[i+j],
+                                                                          x_transformation) < dist1:
+                        dist1 = norm_euk_dist(ext_x_array1[i], ext_x_array2[i+j],
+                                            ext_y_array1[i], ext_y_array2[i+j], x_transformation)
+                        j += 1
+
+                    # search min distance for point extremes1[i]
+                    # search left in extremes2
+                    j = 1
+                    while i - j > 0 and norm_euk_dist(ext_x_array1[i-j], ext_x_array2[i],
+                                                    ext_y_array1[i-j], ext_y_array2[i], x_transformation) < dist2:
+                        dist2 = norm_euk_dist(ext_x_array1[i-j], ext_x_array2[i],
+                                            ext_y_array1[i-j], ext_y_array2[i], x_transformation)
+                        j += 1
+
+                    # search right in extremes2
+                    j = 1
+                    while i + j < SIMILARITY_SEQUENCE_LEN and norm_euk_dist(ext_x_array1[i+j], ext_x_array2[i],
+                                                                          ext_y_array1[i+j], ext_y_array2[i],
+                                                                          x_transformation) < dist2:
+                        dist2 = norm_euk_dist(ext_x_array1[i+j], ext_x_array2[i],
+                                            ext_y_array1[i+j], ext_y_array2[i], x_transformation)
+                        j += 1
+
+                    sum_distances += dist1 + dist2
+                    list_distances.append(dist1)
+                    list_distances.append(dist2)
+
+                list_distances.sort()
+                for i in range(EXTREMES_MAX_JUMP):
+                    list_distances.pop()
+
+                result.append((sum(list_distances) / ext_x_array1[-1], extremes1[offset1], extremes2[offset2]))
+
+            #     for i in range(SIMILARITY_SEQUENCE_LEN - 1):
+            #         if offset2 + i + jump > len(extremes2) - 2:
+            #             return result
+            #         ext_index1 = extremes1[offset1 + i]
+            #         ext_index2 = extremes2[offset2 + i + jump]
+            #
+            #         distance = extremes1[offset1 + i + 1] - ext_index1
+            #         lookup = extremes2[offset2+i+jump:min([offset2+i+jump+EXTREMES_MAX_JUMP+1, len(extremes2)])]
+            #         #jump += [abs(j - ext_index2) for j in lookup].index(min([abs(j - ext_index2) for j in lookup]))
+            #         fe_dist_diff = abs(distance + ext_index2 - extremes2[offset2 + i + jump + 1])
+            #         fe_value1 = trace1[extremes1[offset1 + i + 1]]
+            #         fe_value2 = trace2[extremes2[offset2 + i + jump + 1]]
+            #         sum_similarity += (1 - min(1, fe_dist_diff/distance)) * (1 - abs((fe_value1 - fe_value2) / VALUE_RANGE))
+            #         count_similarity += 1
+            #
+            # if count_similarity == 0:
+            #     result.append((1, extremes1[offset1], extremes2[offset2]))
+            # elif sum_similarity == count_similarity:
+            #     # early stop
+            #     result.append((0, extremes1[offset1], extremes2[offset2]))
+            #     return result
+            # else:
+            #     result.append((1 - sum_similarity / count_similarity, extremes1[offset1], extremes2[offset2]))
     return result
 
 
@@ -88,9 +161,15 @@ def extremes_calculate_shift(trace1, trace2, extremes1):
     if len(evaluation) == 0:
         print("NO SHIFT FOUND FOR THESE TRACES")
         return 0
-    _, index1, index2 = evaluation[0]
-
+    score, index1, index2 = evaluation[0]
+    print(f"master trace index: {index1}\n trace index: {index2}")
     return index1 - index2
+
+
+def moving_average(a, n=4):
+    ret = np.cumsum(a)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] // n
 
 
 def test():
