@@ -1,13 +1,18 @@
 import numpy as np
 import math
 
+# this one is global variable changed by extremes_len_optimize
 LOC_EXT_CONF_INT = 40
-
+# how much extremes are searched to evaluate the sequence. Must be less than number of extremes
 SIMILARITY_SEQUENCE_LEN = 10
-VALUE_RANGE = 256
+# how much most misaligned extremes are not taken in count in order to count similarity
 EXTREMES_MAX_JUMP = 2
+
+VALUE_RANGE = 256
+# difference of values in the first couple of extremes in similarity sequence divided by VALUE_RANGE
+# must be less than threshold
 VALUE_EQ_THRESHOLD = 0.1
-DIST_EQ_THRESHOLD = 0.1
+
 
 def find_lokal_extemes_indexes(trace):
 
@@ -33,10 +38,13 @@ def norm_euk_dist(x1, x2, y1, y2, x_transformation):
 
 
 """"
- start and end of computing with extremes1 of length 16 and extremes2 of length 9 with SIMILIARITY_SEQUENCE_LEN = 5
-        [][][][][][][][][][][][][][][][]   --\   [][][][][][][][][][][][][][][][] (16)
-[][][][][][][][][]                         --/                         [][][][][][][][][] (9)  => [][][][][][][][][][][][][][][] (15)
-
+this function is searching for the most similar sequence between extremes1 and extremes2.
+comparison between sequences works in this fashion:
+It projects extremes with its values as points in 2d space
+The x axis is stretched, to make x and y nearly the same weight in euklidian distance
+each point from extremes1 finds closest point from extremes2 and the same for the other way.
+score is calculated based on sum of these distances and divided by the sample count in similarity interval.
+So lower score are better.
 """
 def extremes_evaluation(trace1, trace2, extremes1, extremes2):
     result = []
@@ -44,12 +52,6 @@ def extremes_evaluation(trace1, trace2, extremes1, extremes2):
     trace2 = trace2.astype(np.int16)
     for offset1 in range(len(extremes1) - SIMILARITY_SEQUENCE_LEN):
         for offset2 in range(len(extremes2) - SIMILARITY_SEQUENCE_LEN):
-            sum_similarity = 0
-            count_similarity = 0
-            jump = 0
-            jump1 = 0
-            jump2 = 0
-
             if (abs(trace1[extremes1[offset1]] - trace2[extremes2[offset2]])) / VALUE_RANGE < VALUE_EQ_THRESHOLD:
                 # candidate_shift = extremes1[offset1] - extremes2[offset2]
                 ext_array1 = extremes1[offset1:offset1+SIMILARITY_SEQUENCE_LEN]
@@ -115,29 +117,6 @@ def extremes_evaluation(trace1, trace2, extremes1, extremes2):
 
                 result.append((sum(list_distances) / ext_x_array1[-1], extremes1[offset1], extremes2[offset2]))
 
-            #     for i in range(SIMILARITY_SEQUENCE_LEN - 1):
-            #         if offset2 + i + jump > len(extremes2) - 2:
-            #             return result
-            #         ext_index1 = extremes1[offset1 + i]
-            #         ext_index2 = extremes2[offset2 + i + jump]
-            #
-            #         distance = extremes1[offset1 + i + 1] - ext_index1
-            #         lookup = extremes2[offset2+i+jump:min([offset2+i+jump+EXTREMES_MAX_JUMP+1, len(extremes2)])]
-            #         #jump += [abs(j - ext_index2) for j in lookup].index(min([abs(j - ext_index2) for j in lookup]))
-            #         fe_dist_diff = abs(distance + ext_index2 - extremes2[offset2 + i + jump + 1])
-            #         fe_value1 = trace1[extremes1[offset1 + i + 1]]
-            #         fe_value2 = trace2[extremes2[offset2 + i + jump + 1]]
-            #         sum_similarity += (1 - min(1, fe_dist_diff/distance)) * (1 - abs((fe_value1 - fe_value2) / VALUE_RANGE))
-            #         count_similarity += 1
-            #
-            # if count_similarity == 0:
-            #     result.append((1, extremes1[offset1], extremes2[offset2]))
-            # elif sum_similarity == count_similarity:
-            #     # early stop
-            #     result.append((0, extremes1[offset1], extremes2[offset2]))
-            #     return result
-            # else:
-            #     result.append((1 - sum_similarity / count_similarity, extremes1[offset1], extremes2[offset2]))
     return result
 
 

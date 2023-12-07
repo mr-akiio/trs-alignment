@@ -9,12 +9,14 @@ import sys
 parameters = TraceSetParameterMap()
 print(parameters)
 
-alignZoomS = 0
-alignZoomE = 22000
-
 outputZoomS = 0
 outputZoomE = 220000
 
+# interval where is search for similar sequences
+alignZoomS = 0
+alignZoomE = 22000
+
+# numbers of extremes chosen from align zoom above will be within this interval
 EXTREMES_L_BOUND = 30
 EXTREMES_UP_BOUND = 70
 
