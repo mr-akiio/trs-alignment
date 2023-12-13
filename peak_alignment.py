@@ -43,7 +43,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
     lengthData = traces.get_headers().get(trsfile.Header.LENGTH_DATA)
     coding = traces.get_headers().get(trsfile.Header.SAMPLE_CODING)
 
-    nameTrace = sys.argv[1][0:-4] + '+PEAK({by_group}, {number}).trs'
+    nameTrace = sys.argv[1][0:-4] + f'+PEAK({by_group}, {number}).trs'
     with trsfile.trs_open(
         nameTrace,                 # File name of the trace set
         'w',                             # Mode: r, w, x, a (default to x)
