@@ -5,6 +5,8 @@ from trsfile.traceparameter import ByteArrayParameter
 import numpy as np
 import utils
 import sys
+from time import time
+
 
 parameters = TraceSetParameterMap()
 print(parameters)
@@ -21,9 +23,12 @@ EXTREMES_L_BOUND = 30
 EXTREMES_UP_BOUND = 70
 
 start = 0
-number = 5
+number = 30
 displayLabels = 1
 AVG_BY = 1000
+
+start_time = time()
+
 
 with trsfile.open(sys.argv[1], 'r') as traces:
     print(traces.get_headers())
@@ -105,5 +110,6 @@ with trsfile.open(sys.argv[1], 'r') as traces:
                                        })
                 )
             )
-
-        print("done")
+        end_time = time()
+        print(f"done in {(end_time - start_time) // 60}m {((end_time - start_time)) - (((end_time - start_time) // 60) * 60)}s")
+        

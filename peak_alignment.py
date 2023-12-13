@@ -25,7 +25,7 @@ zoomS = 0
 zoomE = 220000
 
 start = 0
-number = 10
+number = 30
 displayLabels = 1
 
 by_group = 5

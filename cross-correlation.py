@@ -6,6 +6,8 @@ from trsfile.traceparameter import StringParameter, ByteArrayParameter, Paramete
 import matplotlib.pyplot as plt
 import sys
 import numpy as np
+from time import time
+
 # import random, os
 import math
 import sys
@@ -40,8 +42,11 @@ zoomS = 0
 zoomE = 22000
 
 start = 0
-number = 5
+number = 30
 displayLabels = 1
+
+start_time = time()
+
 
 with trsfile.open(sys.argv[1], 'r') as traces:
     print(traces.get_headers())
@@ -111,4 +116,6 @@ with trsfile.open(sys.argv[1], 'r') as traces:
                 )
             )
 
-        print("done")
+        end_time = time()
+        print(f"done in {(end_time - start_time) // 60}m {((end_time - start_time)) - (((end_time - start_time) // 60) * 60)}s")
+        
