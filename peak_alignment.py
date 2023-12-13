@@ -42,8 +42,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
     lengthData = traces.get_headers().get(trsfile.Header.LENGTH_DATA)
     coding = traces.get_headers().get(trsfile.Header.SAMPLE_CODING)
 
-    nameTrace = sys.argv[1][0:-4] + \
-        '+peak_repaired.trs'
+    nameTrace = sys.argv[1][0:-4] + '+peak_repaired.trs'
     with trsfile.trs_open(
         nameTrace,                 # File name of the trace set
         'w',                             # Mode: r, w, x, a (default to x)
@@ -66,6 +65,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
 
     ) as wrtraces:
         master_trace = traces[0]
+        max_master = 0
         for i in range(number):
             print(f"Processing trace N° {i}")
 
@@ -77,27 +77,29 @@ with trsfile.open(sys.argv[1], 'r') as traces:
 
             for j in range(by_group // 2, trace_array.size, by_group):
 
+                # getting and applying the average
+                # of values grouped by count in by_group
                 low = by_group // 2
                 high = by_group // 2 + 1 if by_group % 2 == 1 else by_group // 2
                 a = int(statistics.mean(trace_array[j-low:j+high]))
 
                 for u in range(j - low, j + high):
                     rand_trace_array[u] = a
-                # rand_trace_array[j+1] = a
-                # rand_trace_array[j-1] = a
-                # rand_trace_array[j-2] = a
-                # rand_trace_array[j+2] = a
 
             if i == 0:
+                # finding max peak of master trace
                 max_master = find_max(rand_trace_array)
                 rand_trace_array = np.zeros(trace_array.size, dtype=np.int8)
 
                 for i in range(trace_array.size):
                     rand_trace_array[i] = trace_array[i]
             else:
+                # finding index of max peak in each trace
+                # and finding the shift
                 shift = max_master - find_max(rand_trace_array)
                 rand_trace_array = np.zeros(trace_array.size, dtype=np.int8)
 
+                # applying shift to trace
                 if shift > 0:
                     for i in range(trace_array.size-shift):
                         rand_trace_array[i+shift] = trace_array[i]
@@ -105,7 +107,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
                     for i in range(trace_array.size+shift):
                         rand_trace_array[i] = trace_array[i-shift]
 
-            # Adding one Trace
+            # Adding shifted Trace
             wrtraces.append(
                 trsfile.Trace(
                     coding,
@@ -114,4 +116,4 @@ with trsfile.open(sys.argv[1], 'r') as traces:
                 )
             )
         end_time = time()
-        print(f"done in {(end_time - start_time) // 60}m {((end_time - start_time) / 60) - ((end_time - start_time) // 60) }s")
+        print(f"done in {(end_time - start_time) // 60}m {((end_time - start_time)) - (((end_time - start_time) // 60) * 60)}s")
