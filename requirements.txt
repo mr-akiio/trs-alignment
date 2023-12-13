@@ -1,0 +1,3 @@
+trsfile
+matplotlib
+scipy

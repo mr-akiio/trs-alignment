@@ -3,6 +3,8 @@
 This project is trying to align traces by using peak-based, correlation-based and extremes-based alignment.
 
 To run this project you need to install trsfile, matplotlib, scipy and numpy. You can use `pip` to download it.
+To get this done You can execute this command from trs-alignment directory:
+> **pip install -r requirements.txt**
 
 Each python file will create new file with changed traces, with appropiate naming with what allignment method was used (usualy as +METHOD(parameters)). 
 On the beggining of each python file, there are some global variables you can change. To see the traces use `visualize.py`.

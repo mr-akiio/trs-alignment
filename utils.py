@@ -4,9 +4,9 @@ import math
 # this one is global variable changed by extremes_len_optimize
 LOC_EXT_CONF_INT = 40
 # how much extremes are searched to evaluate the sequence. Must be less than number of extremes
-SIMILARITY_SEQUENCE_LEN = 10
+SIMILARITY_SEQUENCE_LEN = 5
 # how much most misaligned extremes are not taken in count in order to count similarity
-EXTREMES_MAX_JUMP = 2
+EXTREMES_MAX_JUMP = 1
 
 VALUE_RANGE = 256
 # difference of values in the first couple of extremes in similarity sequence divided by VALUE_RANGE
@@ -72,7 +72,7 @@ def extremes_evaluation(trace1, trace2, extremes1, extremes2):
                     j = 1
                     # searching for closest points
 
-                    # search min distance for point extremes2[i]
+                    # search min distance for point extremes1[i]
                     # search left in extremes2
                     while i - j > 0 and norm_euk_dist(ext_x_array1[i], ext_x_array2[i-j],
                                                     ext_y_array1[i], ext_y_array2[i-j], x_transformation) < dist1:

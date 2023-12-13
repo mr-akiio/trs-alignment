@@ -19,13 +19,13 @@ alignZoomS = 0
 alignZoomE = 22000
 
 # numbers of extremes chosen from align zoom above will be within this interval
-EXTREMES_L_BOUND = 30
-EXTREMES_UP_BOUND = 70
+EXTREMES_L_BOUND = 15
+EXTREMES_UP_BOUND = 30
 
 start = 0
 number = 30
 displayLabels = 1
-AVG_BY = 1000
+AVG_BY = 100
 
 start_time = time()
 
