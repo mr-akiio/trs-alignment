@@ -7,8 +7,6 @@ from trsfile.parametermap import TraceParameterMap
 from trsfile.traceparameter import ByteArrayParameter
 import numpy as np
 
-by_group = 5
-
 
 def find_max(trace_array_input):
     max_val = trace_array_input[0]
@@ -30,6 +28,9 @@ start = 0
 number = 10
 displayLabels = 1
 
+by_group = 5
+# by how many to group by  in averaging
+
 start_time = time()
 
 with trsfile.open(sys.argv[1], 'r') as traces:
@@ -42,7 +43,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
     lengthData = traces.get_headers().get(trsfile.Header.LENGTH_DATA)
     coding = traces.get_headers().get(trsfile.Header.SAMPLE_CODING)
 
-    nameTrace = sys.argv[1][0:-4] + '+peak_repaired.trs'
+    nameTrace = sys.argv[1][0:-4] + '+PEAK({by_group}, {number}).trs'
     with trsfile.trs_open(
         nameTrace,                 # File name of the trace set
         'w',                             # Mode: r, w, x, a (default to x)
