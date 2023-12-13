@@ -42,7 +42,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
 
     # header = traces.get_headers()
     # header[trsfile.Header.NUMBER_SAMPLES] = 1
-    nameTrace = sys.argv[1][0:-4] + 'EXTREMES(' + str(start) + ',' + str(number) + ').trs'
+    nameTrace = sys.argv[1][0:-4] + '+EXTREMES(' + str(start) + ',' + str(number) + ').trs'
     with trsfile.trs_open(
             nameTrace,  # File name of the trace set
             'w',  # Mode: r, w, x, a (default to x)
