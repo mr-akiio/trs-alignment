@@ -8,35 +8,29 @@ import sys
 import numpy as np
 # import random, os
 import math
-
 import sys
+from numpy.random import randn
+from numpy.random import seed
+from scipy.stats import pearsonr
 
+# choose specific section what to compare with correlation
+corrS = 15000
+corrE = 17000
+# how many sampes look to left and right
+interval = 500
 
-def find_max(correlation):
-    max_val = correlation[0]
-    max_index = 0
+def calculate_shift(master, trace2):
+    shift = -interval
+    best = -1
 
-    for i in range(len(correlation)):
-        if correlation[i] > max_val:
-            max_val = correlation[i]
-            max_index = i
-    return max_index
+    for i in range(-interval, interval):
+        llist = trace2[(corrS + i):(corrE + i)]
+        corr, _ = pearsonr(master, llist)
+        if corr > best:
+            best = corr
+            shift = i
 
-
-def calculate_shift(trace1, trace2):
-    # take just some part of master trace
-    
-    correlation = np.correlate(np.array(trace1), np.array(trace2), mode='full')
-    # len(correlation) = trace1.size() + trace2.size() - 1
-
-    # b = correlation[1990:2010]
-    # a = np.argmax(b)
-    # print(b)
-    print(correlation[1999])
-    # print(correlation[np.argmax(correlation)])
-    # result = trace1.size - (np.argmax(correlation) + 1)
-
-    return 0
+    return -shift
 
 
 parameters = TraceSetParameterMap()
@@ -44,11 +38,9 @@ print(parameters)
 
 zoomS = 0
 zoomE = 22000
-corrS = 15000
-corrE = 17000
 
 start = 0
-number = 20
+number = 5
 displayLabels = 1
 
 with trsfile.open(sys.argv[1], 'r') as traces:
@@ -98,8 +90,7 @@ with trsfile.open(sys.argv[1], 'r') as traces:
                 for i in range(trace_array.size):
                     rand_trace_array[i] = trace_array[i]
             else:
-                # shift = calculate_shift(master_trace, trace_array[corrS:corrE])
-                shift = calculate_shift(master_trace, master_trace)
+                shift = calculate_shift(master_trace, trace_array)
                 print(shift)
 
                 if shift > 0:
