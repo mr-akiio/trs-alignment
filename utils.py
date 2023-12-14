@@ -6,7 +6,7 @@ LOC_EXT_CONF_INT = 40
 # how much extremes are searched to evaluate the sequence. Must be less than number of extremes
 SIMILARITY_SEQUENCE_LEN = 5
 # how much most misaligned extremes are not taken in count in order to count similarity
-EXTREMES_MAX_JUMP = 1
+EXTREMES_JUMP = 1
 
 VALUE_RANGE = 256
 # difference of values in the first couple of extremes in similarity sequence divided by VALUE_RANGE
@@ -112,7 +112,7 @@ def extremes_evaluation(trace1, trace2, extremes1, extremes2):
                     list_distances.append(dist2)
 
                 list_distances.sort()
-                for i in range(EXTREMES_MAX_JUMP):
+                for i in range(EXTREMES_JUMP * 2):
                     list_distances.pop()
 
                 result.append((sum(list_distances) / ext_x_array1[-1], extremes1[offset1], extremes2[offset2]))
