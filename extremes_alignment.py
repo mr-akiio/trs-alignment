@@ -14,7 +14,7 @@ print(parameters)
 outputZoomS = 0
 outputZoomE = 220000
 
-# interval where is search for similar sequences
+# interval where the search for similar sequences will be performed
 alignZoomS = 0
 alignZoomE = 22000
 
